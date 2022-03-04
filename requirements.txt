@@ -1,0 +1,7 @@
+healpy
+matplotlib
+numpy
+scipy
+
+-e pyGenISW/
+-e TheoryCL/
