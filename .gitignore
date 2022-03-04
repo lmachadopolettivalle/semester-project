@@ -1,5 +1,8 @@
 temp/
 *npz
+*png
+*output
+*error
 
 pyGenISW/
 TheoryCL/

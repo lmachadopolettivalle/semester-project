@@ -12,6 +12,8 @@ info = np.load(f"{FILEPATH}/shell_info.npy")
 ShellInfo = namedtuple("ShellInfo", ["fits_filename", "notsure", "z_low", "z_high", "dontknow1", "dontknow2", "dontknow3"])
 info = [ShellInfo(*row) for row in info]
 
+print(info)
+
 # Obtain redshift values for each slice
 zedge_min = np.array([row.z_low for row in info])
 zedge_max = np.array([row.z_high for row in info])
@@ -32,9 +34,8 @@ GISW.cosmo(omega_m=omega_m, omega_l=omega_l, h0=h0)
 GISW.calc_table(zmin=zmin_lookup, zmax=zmax_lookup, zbin_num=zbin_num, zbin_mode=zbin_mode)
 
 # spherical Bessel Transform (SBT) setup
-
 zmin                = 0.                # minimum redshift for the SBT
-zmax                = 2.                # maximum redshift for the SBT
+zmax                = 4.                # maximum redshift for the SBT
 #zedge_min           =                   # the minimum of each redshift slice
 #zedge_max           =                   # the maximum of each redshift slice
 Lbox                = 3072.             # size of the simulation box
@@ -95,9 +96,6 @@ alm_isw = GISW.sbt2isw_alm()
 nside = 256
 map_isw = hp.alm2map(alm_isw, nside) * GISW.Tcmb
 
-
-
-
 # After generating map, create power spectrum
 cl = hp.anafast(map_isw, lmax=100)
 ell = np.arange(len(cl))
@@ -107,4 +105,5 @@ plt.plot(ell, ell * (ell + 1) * cl)
 plt.xlabel("$\ell$")
 plt.ylabel("$\ell(\ell+1)C_{\ell}$")
 plt.grid()
+plt.savefig("angular_power_spectrum.png")
 plt.show()
