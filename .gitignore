@@ -1,2 +1,5 @@
-pyGenISW
-TheoryCL
+temp/
+*npz
+
+pyGenISW/
+TheoryCL/
