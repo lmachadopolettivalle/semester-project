@@ -9,10 +9,8 @@ FILEPATH = "/cluster/home/lmachado/run_data/run_0/"
 data = np.load(f"{FILEPATH}/shells.npy", mmap_mode='r')
 info = np.load(f"{FILEPATH}/shell_info.npy")
 
-ShellInfo = namedtuple("ShellInfo", ["fits_filename", "notsure", "z_low", "z_high", "dontknow1", "dontknow2", "dontknow3"])
+ShellInfo = namedtuple("ShellInfo", ["fits_filename", "id", "z_low", "z_high", "dontknow1", "dontknow2", "dontknow3"])
 info = [ShellInfo(*row) for row in info]
-
-print(info)
 
 # Obtain redshift values for each slice
 zedge_min = np.array([row.z_low for row in info])
@@ -23,7 +21,7 @@ zedge_max = np.array([row.z_high for row in info])
 
 omega_m             = 0.25              # matter density
 omega_l             = 1 - omega_m       # lambda density
-h0                  = 0.7               # Hubble constant (H0/100)
+h0                  = 0.6736               # Hubble constant (H0/100)
 zmin_lookup         = 0.                # minimum redshift for lookup table
 zmax_lookup         = 10.               # maximum redshift for lookup table
 zbin_num            = 10000             # number of points in the lookup table
@@ -52,21 +50,9 @@ GISW.setup(zmin, zmax, zedge_min, zedge_max, kmin=kmin, kmax=kmax,
 
 # converts each redshift slice into spherical harmonic alms
 for i in range(0, len(zedge_min)):
-    """
-    map_particle_count = hp.read_map(cosmo_path + 'CosmoML-shell_z-high=' + f'{zs_max[i]}' + '_z-low=' + f'{zs_min[i]}' + '.fits') 
-
-    print('mean part count', np.mean(map_particle_count))
-
-    map_slice = (map_particle_count/np.mean(map_particle_count)) - np.ones_like(map_particle_count) #very imoprtant: convert to zero mean overdenisty field (as required by PyGenISW)
-
-    negatives = np.where(map_slice == -1.)[0]
-    print(negatives)
-    map_slice[negatives] =0 #fix this up so we dont have erroneous negative values- this would come from where we have 0 particles in the map (a problem for lower redshift slices) 
-
-    GISW.slice2alm(map_slice, i) #this funtion saves to some 'temp path' defined in the source code- maybe re-work this and see where being saved 
-    """
     # map of the density for redshift slice i corresponding to zedge_min[i]
     counts = data[i]
+    map_slice = counts
 
     # Clean up negatives in map slice
     # and enforce zero mean in overdensity array
@@ -97,7 +83,7 @@ nside = 256
 map_isw = hp.alm2map(alm_isw, nside) * GISW.Tcmb
 
 # After generating map, create power spectrum
-cl = hp.anafast(map_isw, lmax=100)
+cl = hp.anafast(map_isw, lmax=1000)
 ell = np.arange(len(cl))
 
 plt.figure(figsize=(10, 5))
