@@ -32,7 +32,7 @@ GISW.calc_table(zmin=zmin_lookup, zmax=zmax_lookup, zbin_num=zbin_num, zbin_mode
 
 # Setup for the SBT
 zmin                = 0.
-zmax                = 4.
+zmax                = 1.4
 # Lbox Units: Mpc/h (according to pyGenISW paper, Section 2.1)
 Lbox                = 900
 kmin                = 2.*np.pi/Lbox
@@ -90,11 +90,59 @@ cl *= (1e6)**2 # anafast returns Kelvin^2, but want to plot in microKelvin^2
 ell = np.arange(len(cl))
 
 plt.figure(figsize=(10, 5))
-plt.plot(ell, cl)
+plt.plot(ell, cl, label="pyGenISW")
 plt.xlabel("$\ell$")
-plt.ylabel("$C_{\ell}$")
+plt.ylabel(r"$C_{\ell} (\mu K^2)$")
+plt.xlim([2,1000])
 plt.yscale("log")
 plt.grid()
-plt.savefig("angular_power_spectrum.png")
-plt.show()
 
+# import necessary modules
+from classy import Class
+from math import pi
+
+#############################################
+#
+# Cosmological parameters and other CLASS parameters
+common_settings = {# LambdaCDM parameters
+    'h':h0,
+    'omega_b':0.0493*h0**2,
+    'omega_cdm':0.209*h0**2,
+    'A_s':3.0589e-09,
+    'n_s':0.9649,
+    'tau_reio':0.05430842 ,
+    # output and precision parameters
+    'output':'tCl,pCl,lCl',
+    'lensing':'yes',
+    'l_max_scalars':5000
+}
+#
+M = Class()
+#
+###############
+#
+# call CLASS for the total Cl's and then for each contribution
+#
+###############
+#
+M.set(common_settings)
+M.compute()
+cl_tot = M.raw_cl(1000)
+M.empty()           # reset input
+
+
+M.set(common_settings)
+M.set({'temperature contributions':'lisw'})
+M.compute()
+cl_lisw = M.raw_cl(1000)
+M.empty()
+
+#
+ell = cl_tot['ell']
+plt.plot(ell, (1e6)**2 * cl_lisw["tt"], label="Late ISW from CLASS")
+#
+plt.legend()
+
+plt.savefig('angular_power_spectrum.pdf')
+
+plt.show()
