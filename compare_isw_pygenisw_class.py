@@ -73,6 +73,7 @@ GISW.alm2sbt()
 
 # Optionally, store SBT coefficients
 sbt_fname_prefix = "testnamesbt" # Prefix for output file
+# TODO how to read from npz file
 GISW.save_sbt(prefix=sbt_fname_prefix)
 
 # Compute ISW
@@ -85,7 +86,7 @@ nside = 256
 map_isw = hp.alm2map(alm_isw, nside) * GISW.Tcmb
 
 # After generating map, create power spectrum
-cl = hp.anafast(map_isw, lmax=1000)
+cl = hp.anafast(map_isw, lmax=200)
 cl *= (1e6)**2 # anafast returns Kelvin^2, but want to plot in microKelvin^2
 ell = np.arange(len(cl))
 
@@ -93,7 +94,8 @@ plt.figure(figsize=(10, 5))
 plt.plot(ell, cl, label="pyGenISW")
 plt.xlabel("$\ell$")
 plt.ylabel(r"$C_{\ell} (\mu K^2)$")
-plt.xlim([2,1000])
+plt.xlim([2, 200])
+plt.ylim([1e-6, 1e3])
 plt.yscale("log")
 plt.grid()
 
@@ -127,19 +129,24 @@ M = Class()
 #
 M.set(common_settings)
 M.compute()
-cl_tot = M.raw_cl(1000)
+cl_tot = M.raw_cl(200)
 M.empty()           # reset input
 
 
 M.set(common_settings)
 M.set({'temperature contributions':'lisw'})
 M.compute()
-cl_lisw = M.raw_cl(1000)
+cl_lisw = M.raw_cl(200)
 M.empty()
 
 #
+# Units: CLASS outputs in strange units.
+# Need to multiply by (Tcmb*1e6)^2 to convert into microK^2
+# According to https://github.com/lesgourg/class_public/issues/304#issuecomment-671790592
+# and https://github.com/lesgourg/class_public/issues/322#issuecomment-613941965
+class_unit_factor = (2.726e6)**2
 ell = cl_tot['ell']
-plt.plot(ell, (1e6)**2 * cl_lisw["tt"], label="Late ISW from CLASS")
+plt.plot(ell, class_unit_factor * cl_lisw["tt"], label="Late ISW from CLASS")
 #
 plt.legend()
 
