@@ -120,7 +120,7 @@ ax2.grid()
 
 ax.legend()
 
-plt.savefig('angular_power_spectrum.pdf')
+plt.savefig("images/angular_power_spectrum.pdf")
 
 print("Done")
 plt.show()

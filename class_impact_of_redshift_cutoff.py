@@ -32,6 +32,6 @@ plt.grid()
 
 plt.legend()
 
-plt.savefig('class_redshift_cutoff.pdf')
+plt.savefig("images/class_redshift_cutoff.pdf")
 
 plt.show()
