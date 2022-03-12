@@ -1,27 +1,9 @@
 from classy import Class
 from matplotlib import pyplot as plt
 import numpy as np
-import pyGenISW
-GISW = pyGenISW.isw.SphericalBesselISW()
-TCMB = GISW.Tcmb
-
-h0 = 0.6736
+from class_common_settings import CLASS_COMMON_SETTINGS, TCMB
 
 class_unit_factor = (TCMB * 1e6)**2
-
-common_settings = {
-    'h':h0,
-    'omega_b':0.0493*h0**2,
-    'omega_m': 0.26*h0**2,
-    'A_s':3.0589e-09,
-    'n_s':0.9649,
-    'tau_reio':0.05430842,
-    'T_cmb': TCMB,
-    'output':'tCl,pCl,lCl',
-    'lensing':'yes',
-    'l_max_scalars':5000,
-    'temperature contributions': 'lisw',
-}
 
 M = Class()
 
@@ -30,9 +12,9 @@ redshift_cutoffs = np.logspace(np.log10(1), np.log10(50), 10)
 
 for cutoff in redshift_cutoffs:
     print(cutoff)
-    common_settings['early_late_isw_redshift'] = cutoff
+    CLASS_COMMON_SETTINGS['early_late_isw_redshift'] = cutoff
 
-    M.set(common_settings)
+    M.set(CLASS_COMMON_SETTINGS)
     M.compute()
     cl_lisw = M.raw_cl(200)
     M.empty()
