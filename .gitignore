@@ -1,0 +1,9 @@
+temp/
+*npz
+*png
+*pdf
+*output
+*error
+
+pyGenISW/
+TheoryCL/
