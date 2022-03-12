@@ -12,13 +12,11 @@ class_unit_factor = (TCMB * 1e6)**2
 common_settings = {
     'h':h0,
     'omega_b':0.0493*h0**2,
-    #'omega_cdm':0.209*h0**2,
     'omega_m': 0.26*h0**2,
     'A_s':3.0589e-09,
     'n_s':0.9649,
     'tau_reio':0.05430842,
     'T_cmb': TCMB,
-    # output and precision parameters
     'output':'tCl,pCl,lCl',
     'lensing':'yes',
     'l_max_scalars':5000,
