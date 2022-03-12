@@ -105,6 +105,8 @@ for filename in filenames:
 # Plot settings
 ax2.set_xlabel("$\ell$")
 
+ax2.axhline(0, color="black")
+
 ax.set_ylabel(r"$C_{\ell} (\mu K^2)$")
 ax2.set_ylabel("Fractional change")
 
@@ -120,7 +122,9 @@ ax2.grid()
 
 ax.legend()
 
-plt.savefig("images/angular_power_spectrum.pdf")
+fig.suptitle("L-ISW Spectrum, impact of Box Size")
+
+plt.savefig("images/angular_power_spectrum_impact_redshift.pdf")
 
 print("Done")
 plt.show()
