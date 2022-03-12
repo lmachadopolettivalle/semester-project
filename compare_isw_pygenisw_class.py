@@ -6,7 +6,10 @@ import pyGenISW
 from classy import Class
 
 # Read run data
-FILEPATH = "/cluster/home/lmachado/run_data/run_0/"
+DATAPATH = "/cluster/home/lmachado/run_data"
+BOXSIZE = 2250 # Can be 900 or 2250
+RUNINDEX = 0 # Index of simulation run
+FILEPATH = f"{DATAPATH}/box_{BOXSIZE}/run_{RUNINDEX}"
 data = np.load(f"{FILEPATH}/shells.npy", mmap_mode='r')
 info = np.load(f"{FILEPATH}/shell_info.npy")
 
@@ -35,12 +38,14 @@ TCMB = GISW.Tcmb
 
 # Setup for the SBT
 zmin                = 0.
-zmax                = 4.
+zmax                = 2.
 # Lbox Units: Mpc/h (according to pyGenISW paper, Section 2.1)
-Lbox                = 900
+Lbox                = BOXSIZE
 kmin                = 2.*np.pi/Lbox
 # kmax selected to limit analysis to linear perturbations.
 # Since non-linear perturbations happen for k > 0.1 h / Mpc
+# However, this kmax depends on the redshift range under consideration.
+# For instance, for z up to 2, kmax can be 0.02 instead of the 0.1 value for z = 0.
 kmax                = 0.1
 lmax                = None
 nmax                = None
@@ -77,7 +82,6 @@ GISW.alm2sbt()
 
 # Optionally, store SBT coefficients
 sbt_fname_prefix = "testnamesbt" # Prefix for output file
-# TODO how to read from npz file
 GISW.save_sbt(prefix=sbt_fname_prefix)
 
 # Compute ISW
@@ -92,7 +96,7 @@ ell = np.arange(len(cl))
 plt.plot(ell, cl, label="pyGenISW")
 plt.xlabel("$\ell$")
 plt.ylabel(r"$C_{\ell} (\mu K^2)$")
-plt.xlim([2, 200])
+plt.xlim([0, 200])
 plt.ylim([1e-6, 1e3])
 plt.yscale("log")
 plt.grid()
@@ -106,12 +110,9 @@ common_settings = {
     'omega_cdm':0.209*h0**2,
     'A_s':3.0589e-09,
     'n_s':0.9649,
-    'tau_reio':0.05430842,
     'T_cmb': TCMB,
-    # output and precision parameters
     'output':'tCl,pCl,lCl',
     'lensing':'yes',
-    #'l_max_scalars':5000,
     'temperature contributions': 'lisw',
     #'early_late_isw_redshift': zedge_max[-1]
 }
@@ -119,7 +120,7 @@ common_settings = {
 M = Class()
 M.set(common_settings)
 M.compute()
-cl_lisw = M.raw_cl(200)
+cl_lisw = M.raw_cl(1000)
 M.empty()
 
 
