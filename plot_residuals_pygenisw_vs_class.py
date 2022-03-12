@@ -8,9 +8,18 @@ import os
 
 # List of colors
 COLORS = {
-    1.4: "blue",
-    2.0: "orange",
-    4.0: "green",
+    1.4: {
+        2250: "blue",
+        900: "deepskyblue",
+    },
+    2.0: {
+        2250: "darkorange",
+        900: "gold",
+    },
+    4.0: {
+        2250: "green",
+        900: "lime",
+    },
 }
 LINESTYLES = {
     900: "--",
@@ -55,9 +64,9 @@ print("Done with CLASS computation")
 # According to https://github.com/lesgourg/class_public/issues/304#issuecomment-671790592
 # and https://github.com/lesgourg/class_public/issues/322#issuecomment-613941965
 class_unit_factor = (TCMB * 1e6)**2
-ell = cl_lisw['ell']
+class_ell = cl_lisw['ell']
 class_cl = class_unit_factor * cl_lisw["tt"]
-ax.plot(ell, class_cl, label="CLASS", c="black")
+ax.plot(class_ell, class_cl, label="CLASS", c="black")
 
 # Create mask for division later in the loop
 mask = np.where(class_cl != 0.0)
@@ -71,6 +80,7 @@ for filename in filenames:
     zmax = float(parts[1][len("zmax"):])
     boxsize = int(parts[2][len("boxsize"):])
     runindex = int(parts[3].split(".")[0][len("runindex"):])
+
 
     # Read Alm values computed using pyGenISW
     with open(f"{ALM_FILES_DIRECTORY}/{filename}", "rb") as f:
@@ -88,7 +98,7 @@ for filename in filenames:
         cl,
         label=f"Boxsize {boxsize}, zmax {zmax:.1f}",
         ls=LINESTYLES[boxsize],
-        c=COLORS[zmax],
+        c=COLORS[zmax][boxsize],
     )
 
     # Compute fractional difference
@@ -99,8 +109,12 @@ for filename in filenames:
         ell,
         fractional_diff,
         ls=LINESTYLES[boxsize],
-        c=COLORS[zmax],
+        c=COLORS[zmax][boxsize],
     )
+
+# Add cosmic variance to residual plot for reference
+cosmic_variance = np.sqrt(2 / (2*class_ell + 1))
+ax2.fill_between(class_ell, cosmic_variance, -1*cosmic_variance, color="black", alpha=0.3)
 
 # Plot settings
 ax2.set_xlabel("$\ell$")
@@ -124,7 +138,7 @@ ax.legend()
 
 fig.suptitle("L-ISW Spectrum, impact of Box Size")
 
-plt.savefig("images/angular_power_spectrum_impact_redshift.pdf")
+plt.savefig("images/angular_power_spectrum_impact_boxsize.pdf")
 
 print("Done")
 plt.show()
