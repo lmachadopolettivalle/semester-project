@@ -42,6 +42,8 @@ zmin = 0.0
 #########
 print("Starting CLASS computation")
 
+class_cl_dict = {}
+
 # Units: CLASS outputs in strange units.
 # Need to multiply by (Tcmb*1e6)^2 to convert into microK^2
 # According to https://github.com/lesgourg/class_public/issues/304#issuecomment-671790592
@@ -58,6 +60,7 @@ for boxsize, zmax in ZMAX.items():
 
     class_ell = cl_lisw['ell']
     class_cl = class_unit_factor * cl_lisw["tt"]
+    class_cl_dict[boxsize] = class_cl
     ax.plot(class_ell, class_cl, label=f"CLASS, zmax={zmax}", c=COLORS[boxsize], ls="-")
 
 print("Done with CLASS computation")
@@ -99,7 +102,7 @@ for filename in filenames:
     )
 
     # Compute fractional difference
-    fractional_diff = (cl / cosmic_variance[:len(cl)]) - 1
+    fractional_diff = (cl - class_cl_dict[boxsize][:len(cl)])/ cosmic_variance[:len(cl)]
 
     ax2.plot(
         ell,
