@@ -8,22 +8,13 @@ import os
 
 # List of colors
 COLORS = {
-    1.4: {
-        2250: "blue",
-        900: "deepskyblue",
-    },
-    2.0: {
-        2250: "darkorange",
-        900: "gold",
-    },
-    4.0: {
-        2250: "green",
-        900: "lime",
-    },
+    900: "blue",
+    2250: "orange",
 }
-LINESTYLES = {
-    900: "--",
-    2250: "-",
+
+ZMAX = {
+    900: 0.32,
+    2250: 0.93,
 }
 
 # Maximum L for which to compute C_L
@@ -41,36 +32,39 @@ ax.figure.add_axes(ax2)
 # List all available Alm files
 ALM_FILES_DIRECTORY = "alm_files"
 filenames = sorted(os.listdir(ALM_FILES_DIRECTORY))
-# E.g. alm_zmax2.0_boxsize2250_runindex0.npy
+# E.g. alm_zmax2.00_boxsize2250_runindex0.npy
 
 # Setup for the SBT
-zmin                = 0.
+zmin = 0.0
 
 #########
 # CLASS #
 #########
 print("Starting CLASS computation")
 
-M = Class()
-M.set(CLASS_COMMON_SETTINGS)
-M.compute()
-cl_lisw = M.raw_cl(MAXIMUM_L)
-M.empty()
-
-print("Done with CLASS computation")
-
 # Units: CLASS outputs in strange units.
 # Need to multiply by (Tcmb*1e6)^2 to convert into microK^2
 # According to https://github.com/lesgourg/class_public/issues/304#issuecomment-671790592
 # and https://github.com/lesgourg/class_public/issues/322#issuecomment-613941965
 class_unit_factor = (TCMB * 1e6)**2
-class_ell = cl_lisw['ell']
-class_cl = class_unit_factor * cl_lisw["tt"]
-ax.plot(class_ell, class_cl, label="CLASS", c="black")
 
-# Create mask for division later in the loop
-mask = np.where(class_cl != 0.0)
-notmask = np.where(class_cl == 0.0)
+for boxsize, zmax in ZMAX.items():
+    M = Class()
+    CLASS_COMMON_SETTINGS["early_late_isw_redshift"] = zmax
+    M.set(CLASS_COMMON_SETTINGS)
+    M.compute()
+    cl_lisw = M.raw_cl(MAXIMUM_L)
+    M.empty()
+
+    class_ell = cl_lisw['ell']
+    class_cl = class_unit_factor * cl_lisw["tt"]
+    ax.plot(class_ell, class_cl, label=f"CLASS, zmax={zmax}", c=COLORS[boxsize], ls="-")
+
+print("Done with CLASS computation")
+
+
+# Compute cosmic variance for residual plots
+cosmic_variance = np.sqrt(2 / (2*class_ell + 1))
 
 # Loop through pyGenISW Alm files
 for filename in filenames:
@@ -81,6 +75,9 @@ for filename in filenames:
     boxsize = int(parts[2][len("boxsize"):])
     runindex = int(parts[3].split(".")[0][len("runindex"):])
 
+    # Only keep 900, zmax=0.32, and 2250, zmax=0.93
+    if zmax > 0.94:
+        continue
 
     # Read Alm values computed using pyGenISW
     with open(f"{ALM_FILES_DIRECTORY}/{filename}", "rb") as f:
@@ -96,25 +93,23 @@ for filename in filenames:
     ax.plot(
         ell,
         cl,
-        label=f"Boxsize {boxsize}, zmax {zmax:.1f}",
-        ls=LINESTYLES[boxsize],
-        c=COLORS[zmax][boxsize],
+        label=f"Boxsize={boxsize} Mpc/h, zmax={zmax:.2f}",
+        ls="--",
+        c=COLORS[boxsize],
     )
 
     # Compute fractional difference
-    fractional_diff = np.zeros(len(class_cl))
-    fractional_diff[mask] = (cl[mask] / class_cl[mask]) - 1
+    fractional_diff = (cl / cosmic_variance[:len(cl)]) - 1
 
     ax2.plot(
         ell,
         fractional_diff,
-        ls=LINESTYLES[boxsize],
-        c=COLORS[zmax][boxsize],
+        ls="--",
+        c=COLORS[boxsize],
     )
 
 # Add cosmic variance to residual plot for reference
-cosmic_variance = np.sqrt(2 / (2*class_ell + 1))
-ax2.fill_between(class_ell, cosmic_variance, -1*cosmic_variance, color="black", alpha=0.3)
+ax2.fill_between(class_ell, [1]*len(class_ell), [-1]*len(class_ell), color="black", alpha=0.3)
 
 # Plot settings
 ax2.set_xlabel("$\ell$")
@@ -127,7 +122,7 @@ ax2.set_ylabel("Fractional change")
 ax.set_xlim([0, 200])
 ax2.set_xlim([0, 200])
 ax.set_ylim([1e-6, 1e3])
-ax2.set_ylim([-5, 15])
+ax2.set_ylim([-2, 2])
 
 ax.set_yscale("log")
 
@@ -138,7 +133,7 @@ ax.legend()
 
 fig.suptitle("L-ISW Spectrum, impact of Box Size")
 
-plt.savefig("images/angular_power_spectrum_impact_boxsize.pdf")
+#plt.savefig("images/angular_power_spectrum_impact_boxsize.pdf")
 
 print("Done")
 plt.show()
