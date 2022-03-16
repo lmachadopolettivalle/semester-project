@@ -66,8 +66,6 @@ for boxsize, zmax in ZMAX.items():
 print("Done with CLASS computation")
 
 
-# Compute cosmic variance for residual plots
-cosmic_variance = np.sqrt(2 / (2*class_ell + 1))
 
 # Loop through pyGenISW Alm files
 for filename in filenames:
@@ -101,11 +99,17 @@ for filename in filenames:
         c=COLORS[boxsize],
     )
 
+    # Compute cosmic variance for residual plots
+    cosmic_variance = np.abs(class_cl_dict[boxsize]) * np.sqrt(2 / (2*class_ell + 1))
+
     # Compute fractional difference
+    # Note that cl may have fewer than MAXIMUM_L elements, in which case we need to pad the difference array
     fractional_diff = (cl - class_cl_dict[boxsize][:len(cl)])/ cosmic_variance[:len(cl)]
 
+    fractional_diff = np.pad(fractional_diff, (0, len(cosmic_variance) - len(fractional_diff)), "constant")
+
     ax2.plot(
-        ell,
+        class_ell,
         fractional_diff,
         ls="--",
         c=COLORS[boxsize],
@@ -125,7 +129,7 @@ ax2.set_ylabel("Fractional change")
 ax.set_xlim([0, 200])
 ax2.set_xlim([0, 200])
 ax.set_ylim([1e-6, 1e3])
-ax2.set_ylim([-2, 2])
+ax2.set_ylim([-10, 10])
 
 ax.set_yscale("log")
 
