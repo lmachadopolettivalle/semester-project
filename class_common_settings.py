@@ -3,6 +3,8 @@ import pyGenISW
 h0 = 0.6736
 sigma_8 = 0.84
 
+Omega_b = 0.0493
+
 # CMB Temperature from pyGenISW
 GISW = pyGenISW.isw.SphericalBesselISW()
 TCMB = GISW.Tcmb

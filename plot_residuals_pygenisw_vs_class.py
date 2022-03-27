@@ -1,10 +1,11 @@
 from classy import Class
-from class_common_settings import CLASS_COMMON_SETTINGS, h0, TCMB
+from class_common_settings import CLASS_COMMON_SETTINGS, h0, TCMB, sigma_8, Omega_b
 import healpy as hp
 from matplotlib import pyplot as plt
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 import numpy as np
 import os
+import TheoryCL
 
 # List of colors
 COLORS = {
@@ -66,6 +67,54 @@ for boxsize, zmax in ZMAX.items():
 print("Done with CLASS computation")
 
 
+### TheoryCL
+"""
+print("Starting TheoryCL plot")
+
+SCL = TheoryCL.SourceCL(TheoryCL.CosmoLinearGrowth())
+
+# Set cosmology
+SCL.cosmo(omega_m=CLASS_COMMON_SETTINGS["Omega_m"], omega_l=CLASS_COMMON_SETTINGS["Omega_m"], h0=h0, omega_b=Omega_b, ns=CLASS_COMMON_SETTINGS["n_s"], As=CLASS_COMMON_SETTINGS["A_s"], sigma8=sigma_8)
+
+# Creates a table of the following linear growth functions for later interpolation:
+# - r : comoving distance
+# - H : Hubble parameter
+# - D : linear growth rate
+# - f : dlnD/dlna via approximation.
+SCL.calc_table(zmin=0., zmax=10., zbin_num=10000, zbin_mode='log')
+
+# Calculates the linear power spectra using CAMB and create callable interpolator.
+SCL.calc_pk()
+
+lmax              = 200           # maximum l mode to compute CLs.
+zmin              = 0.            # minimum redshift integrals along the line-of-sight are computed to.
+zmax              = 5.            # maximum redshift to which integrals along the line-of-sight are computed to.
+rbin_num          = 1000          # number of bins along radial coordinates for integration.
+rbin_mode         = 'linear'      # linear or log binning schemes.
+kmin              = None          # minimum k for integrals, if None defaults to minimum value pre-calculated by CAMB.
+kmax              = 1.            # maximum k for integrals
+kbin_num          = 1000          # number of bins in Fourier coordinates for integration.
+kbin_mode         = 'log'         # linear or log binning schemes.
+switch2limber     = 200           # beyond this l we only compute the CLs using the Limber/flat-sky approximation.
+
+SCL.setup(lmax, zmin=zmin, zmax=zmax, rbin_num=rbin_num, rbin_mode=rbin_mode,
+          kmin=kmin, kmax=kmax, kbin_num=kbin_num, kbin_mode=kbin_mode,
+          switch2limber=switch2limber)
+
+# Define sources, for example the ISW and matter distribution between redshift 0 and 1.4.
+
+zmin, zmax = 0.0, 0.93
+SCL.set_source_ISW(zmin, zmax)
+SCL.set_source_gal_tophat(zmin, zmax, 1.) # the 1. is the linear bias
+
+SCL.get_CL() # Units: Kelvin^2
+
+ax.plot(SCL.L_full, (1e6)**2 * SCL.CLs_full[:, 0], color="black", linestyle="--", linewidth=2., label="TheoryCL")
+print("Done with TheoryCL")
+"""
+###
+
+### pyGenISW
 
 # Loop through pyGenISW Alm files
 for filename in filenames:
@@ -75,6 +124,12 @@ for filename in filenames:
     zmax = float(parts[1][len("zmax"):])
     boxsize = int(parts[2][len("boxsize"):])
     runindex = int(parts[3].split(".")[0][len("runindex"):])
+
+    # TODO fix this up for colors to be more extensible
+    if "high" in parts[0]:
+        COLORS[900] = "red"
+    else:
+        COLORS[900] = "blue"
 
     # Only keep 900, zmax=0.32, and 2250, zmax=0.93
     if zmax > 0.94:
