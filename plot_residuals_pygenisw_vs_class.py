@@ -7,10 +7,23 @@ import numpy as np
 import os
 import TheoryCL
 
+# Types of runs
+RUN_TYPES = {
+    "FIDUCIAL": "FIDUCIAL",
+    "HIGH PARTICLE COUNT": "HIGH PARTICLE COUNT",
+    "HIGH REDSHIFT RESOLUTION": "HIGH REDSHIFT RESOLUTION",
+}
+
 # List of colors
 COLORS = {
-    900: "blue",
-    2250: "orange",
+    900: {
+        "FIDUCIAL": "blue",
+        "HIGH PARTICLE COUNT": "red",
+        "HIGH REDSHIFT RESOLUTION": "green",
+    },
+    2250: {
+        "FIDUCIAL": "orange",
+    },
 }
 
 ZMAX = {
@@ -62,7 +75,7 @@ for boxsize, zmax in ZMAX.items():
     class_ell = cl_lisw['ell']
     class_cl = class_unit_factor * cl_lisw["tt"]
     class_cl_dict[boxsize] = class_cl
-    ax.plot(class_ell, class_cl, label=f"CLASS, zmax={zmax}", c=COLORS[boxsize], ls="-")
+    ax.plot(class_ell, class_cl, label=f"CLASS, zmax={zmax}", c=COLORS[boxsize][RUN_TYPES["FIDUCIAL"]], ls="-")
 
 print("Done with CLASS computation")
 
@@ -120,20 +133,24 @@ print("Done with TheoryCL")
 for filename in filenames:
     # Parse boxsize, zmax, runindex
     # E.g. alm_zmax2.0_boxsize2250_runindex0.npy
+    # Note: this parsing works well because even the high resolution and
+    # high particle count runs are stored with matching name patterns.
     parts = filename.split("_")
     zmax = float(parts[1][len("zmax"):])
     boxsize = int(parts[2][len("boxsize"):])
     runindex = int(parts[3].split(".")[0][len("runindex"):])
 
-    # TODO fix this up for colors to be more extensible
-    if "high" in parts[0]:
-        COLORS[900] = "red"
-    else:
-        COLORS[900] = "blue"
-
     # Only keep 900, zmax=0.32, and 2250, zmax=0.93
     if zmax > 0.94:
         continue
+
+    # Determine type of run
+    if "high" not in parts[0]:
+        run_type = RUN_TYPES["FIDUCIAL"]
+    elif "particle" in parts[0]:
+        run_type = RUN_TYPES["HIGH PARTICLE COUNT"]
+    elif "redshift" in parts[0]:
+        run_type = RUN_TYPES["HIGH REDSHIFT RESOLUTION"]
 
     # Read Alm values computed using pyGenISW
     with open(f"{ALM_FILES_DIRECTORY}/{filename}", "rb") as f:
@@ -149,9 +166,9 @@ for filename in filenames:
     ax.plot(
         ell,
         cl,
-        label=f"Boxsize={boxsize} Mpc/h, zmax={zmax:.2f}",
+        label=f"Boxsize={boxsize} Mpc/h, zmax={zmax:.2f}, {run_type.title()}",
         ls="--",
-        c=COLORS[boxsize],
+        c=COLORS[boxsize][run_type],
     )
 
     # Compute cosmic variance for residual plots
@@ -167,7 +184,7 @@ for filename in filenames:
         class_ell,
         fractional_diff,
         ls="--",
-        c=COLORS[boxsize],
+        c=COLORS[boxsize][run_type],
     )
 
 # Add cosmic variance to residual plot for reference
@@ -179,11 +196,11 @@ ax2.set_xlabel("$\ell$")
 ax2.axhline(0, color="black")
 
 ax.set_ylabel(r"$C_{\ell} (\mu K^2)$")
-ax2.set_ylabel("Fractional change")
+ax2.set_ylabel("Fractional change\n(units of cosmic variance)")
 
 ax.set_xlim([0, 200])
 ax2.set_xlim([0, 200])
-ax.set_ylim([1e-6, 1e3])
+ax.set_ylim([1e-9, 1e3])
 ax2.set_ylim([-10, 10])
 
 ax.set_yscale("log")
@@ -193,7 +210,7 @@ ax2.grid()
 
 ax.legend()
 
-fig.suptitle("L-ISW Spectrum, impact of Box Size")
+fig.suptitle("L-ISW Spectrum Comparison")
 
 #plt.savefig("images/angular_power_spectrum_impact_boxsize.pdf")
 
