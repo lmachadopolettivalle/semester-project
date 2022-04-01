@@ -145,17 +145,6 @@ for filename in filenames:
         continue
 
     # Determine type of run
-
-    # TODO remove me
-    if "NEWMEAN" in parts[0]:
-        run_type = RUN_TYPES["FIDUCIAL"]
-        print("TEST with particle mean counts")
-    else:
-        continue
-
-
-
-
     if "high" not in parts[0]:
         run_type = RUN_TYPES["FIDUCIAL"]
     elif "particle" in parts[0]:

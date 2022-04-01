@@ -3,6 +3,7 @@ from collections import namedtuple
 import numpy as np
 import pyGenISW
 from class_common_settings import h0, sigma_8, Omega_b, CLASS_COMMON_SETTINGS
+import uuid
 
 # Collect data for boxsize, runindex, zmax
 parser = argparse.ArgumentParser()
@@ -67,40 +68,30 @@ boundary_conditions = "normal" # Either normal or derivative
 GISW.setup(zmin, zmax, zedge_min, zedge_max, kmin=kmin, kmax=kmax,
            lmax=lmax, nmax=nmax, uselightcone=uselightcone,
            boundary_conditions=boundary_conditions,
-           temp_path=f"temp_zmax{zmax}_boxsize{BOXSIZE}_runindex{RUNINDEX}/")
+           temp_path=f"temp_zmax{zmax}_boxsize{BOXSIZE}_runindex{RUNINDEX}_{uuid.uuid4()}/")
 
 # Convert redshift slices into Spherical Harmonic Alm values
 for i in range(0, len(zedge_min)):
     # Map of the density for redshift slice i
     counts = data[i]
-    print("Values for len, min, max")
-    print(len(counts))
-    print(min(counts))
-    print(max(counts))
-    print("DONE printing len, min, max")
-    map_slice = counts
 
-    # Clean up negatives in map slice
-    # and enforce zero mean in overdensity array
-    mean_count = np.mean(counts)
-    print(f"Mean count from averaging: {mean_count}")
-
+    # Compute mean from expected number of particles
+    # based on average density in entire box
     AVERAGE_DENSITY = 0.92 ** 3 # particles / ((Mpc/h)^3)
     MIN_R = float(GISW.get_rz(zedge_min[i]))
     MAX_R = float(GISW.get_rz(zedge_max[i]))
     SLICE_VOLUME = (4*np.pi/3) * (MAX_R**3 - MIN_R**3)
-    mean_count = AVERAGE_DENSITY * SLICE_VOLUME
-    print(f"Mean count from density: {mean_count}")
-    exit()
-    
-    map_slice = (counts - mean_count) / mean_count # Construct zero mean overdensity array
-    #mask_negatives = np.where(counts == 0.0)[0]
-    #map_slice[mask_negatives] = 0 # Resolve issue caused by missing particles
+    mean_count = AVERAGE_DENSITY * SLICE_VOLUME / len(counts)
+    # Note that above, we divide mean_count by the number of pixels, i.e. the length of the map
+    # Note: the length of the map should match hp.nside2npix(nside) with nside=2048
+
+    # Construct zero mean overdensity array
+    map_slice = (counts - mean_count) / mean_count
 
     # Compute alm from map_slice,
     # and store inside temp/ directory
     print(f"About to perform slice2alm in index i: {i}")
-    GISW.slice2alm(map_slice, i)
+    GISW.slice2alm(map_slice, i, use_pixel_weights=False)
 
 print("Done with for loop")
 
@@ -114,8 +105,5 @@ alm_isw = GISW.sbt2isw_alm()
 
 # Save alm_isw to file,
 # to reduce computation time in the future
-with open(f"alm_files/TESTNOMASKNEWMEANalm_zmax{zmax:.2f}_boxsize{BOXSIZE}_runindex{RUNINDEX}.npy", "wb") as f:
+with open(f"alm_files/alm_zmax{zmax:.2f}_boxsize{BOXSIZE}_runindex{RUNINDEX}.npy", "wb") as f:
     np.save(f, alm_isw)
-
-# Clean up temp directory
-GISW.clean_temp()
