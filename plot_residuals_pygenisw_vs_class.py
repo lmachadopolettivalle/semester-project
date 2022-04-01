@@ -168,7 +168,7 @@ for filename in filenames:
     ax.plot(
         ell,
         cl,
-        label=f"Boxsize={boxsize} Mpc/h, zmax={zmax:.2f}, {run_type.title()}",
+        label=f"Boxsize={boxsize} Mpc/h, zmax={zmax:.2f}, {run_type.title()} {parts[0]}",
         ls="--",
         c=COLORS[boxsize][run_type],
     )
@@ -200,12 +200,10 @@ ax2.axhline(0, color="black")
 ax.set_ylabel(r"$C_{\ell} (\mu K^2)$")
 ax2.set_ylabel("Fractional change\n(units of cosmic variance)")
 
-"""
 ax.set_xlim([0, 200])
 ax2.set_xlim([0, 200])
 ax.set_ylim([1e-6, 1e3])
 ax2.set_ylim([-10, 10])
-"""
 
 ax.set_yscale("log")
 

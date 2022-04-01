@@ -1,3 +1,4 @@
+import numpy as np
 import pyGenISW
 
 h0 = 0.6736
@@ -19,6 +20,7 @@ CLASS_COMMON_SETTINGS = {
     #'Omega_ncdm': 0.0014,
     'Omega_m':0.26,
     'A_s':3.0589e-09,
+    #'A_s':np.exp(3.0589)*1e-10,
     'n_s':0.9649,
     'T_cmb': TCMB,
     'output':'tCl,pCl,lCl',
