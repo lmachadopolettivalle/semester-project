@@ -145,6 +145,17 @@ for filename in filenames:
         continue
 
     # Determine type of run
+
+    # TODO remove me
+    if "NEWMEAN" in parts[0]:
+        run_type = RUN_TYPES["FIDUCIAL"]
+        print("TEST with particle mean counts")
+    else:
+        continue
+
+
+
+
     if "high" not in parts[0]:
         run_type = RUN_TYPES["FIDUCIAL"]
     elif "particle" in parts[0]:
@@ -159,6 +170,8 @@ for filename in filenames:
     cl = hp.alm2cl(alm_isw)
     cl *= (1e6)**2 # alm2cl returns Kelvin^2, but want to plot in microKelvin^2
     ell = np.arange(len(cl))
+    print(ell)
+    print(cl)
 
     ell = ell[:MAXIMUM_L + 1]
     cl = cl[:MAXIMUM_L + 1]
@@ -198,10 +211,12 @@ ax2.axhline(0, color="black")
 ax.set_ylabel(r"$C_{\ell} (\mu K^2)$")
 ax2.set_ylabel("Fractional change\n(units of cosmic variance)")
 
+"""
 ax.set_xlim([0, 200])
 ax2.set_xlim([0, 200])
 ax.set_ylim([1e-6, 1e3])
 ax2.set_ylim([-10, 10])
+"""
 
 ax.set_yscale("log")
 

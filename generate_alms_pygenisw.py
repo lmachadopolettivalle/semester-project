@@ -73,15 +73,29 @@ GISW.setup(zmin, zmax, zedge_min, zedge_max, kmin=kmin, kmax=kmax,
 for i in range(0, len(zedge_min)):
     # Map of the density for redshift slice i
     counts = data[i]
+    print("Values for len, min, max")
+    print(len(counts))
+    print(min(counts))
+    print(max(counts))
+    print("DONE printing len, min, max")
     map_slice = counts
 
     # Clean up negatives in map slice
     # and enforce zero mean in overdensity array
     mean_count = np.mean(counts)
-    map_slice = (counts - mean_count) / mean_count # Construct zero mean overdensity array
-    mask_negatives = np.where(counts == 0.0)[0]
+    print(f"Mean count from averaging: {mean_count}")
 
-    map_slice[mask_negatives] = 0 # Resolve issue caused by missing particles
+    AVERAGE_DENSITY = 0.92 ** 3 # particles / ((Mpc/h)^3)
+    MIN_R = float(GISW.get_rz(zedge_min[i]))
+    MAX_R = float(GISW.get_rz(zedge_max[i]))
+    SLICE_VOLUME = (4*np.pi/3) * (MAX_R**3 - MIN_R**3)
+    mean_count = AVERAGE_DENSITY * SLICE_VOLUME
+    print(f"Mean count from density: {mean_count}")
+    exit()
+    
+    map_slice = (counts - mean_count) / mean_count # Construct zero mean overdensity array
+    #mask_negatives = np.where(counts == 0.0)[0]
+    #map_slice[mask_negatives] = 0 # Resolve issue caused by missing particles
 
     # Compute alm from map_slice,
     # and store inside temp/ directory
@@ -100,7 +114,7 @@ alm_isw = GISW.sbt2isw_alm()
 
 # Save alm_isw to file,
 # to reduce computation time in the future
-with open(f"alm_files/alm_zmax{zmax:.2f}_boxsize{BOXSIZE}_runindex{RUNINDEX}.npy", "wb") as f:
+with open(f"alm_files/TESTNOMASKNEWMEANalm_zmax{zmax:.2f}_boxsize{BOXSIZE}_runindex{RUNINDEX}.npy", "wb") as f:
     np.save(f, alm_isw)
 
 # Clean up temp directory
