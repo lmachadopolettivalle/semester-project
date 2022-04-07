@@ -40,10 +40,11 @@ GISW.calc_table(zmin=zmin_lookup, zmax=zmax_lookup, zbin_num=zbin_num, zbin_mode
 
 # Determine zmax as the redshift for which r(zmax) = BOXSIZE
 zmax = float(GISW.get_zr(BOXSIZE))
+zmax_SBT = zmax + 0.2
 print(f"zmax for boxsize {BOXSIZE} is {zmax}")
 
 # Filter data and info to contain only redshifts up to zmax
-info = [i for i in info if i.z_high < zmax]
+info = [i for i in info if i.z_low < zmax]
 data = data[:len(info)]
 
 # Obtain redshift values for each slice
@@ -65,7 +66,7 @@ nmax                = None
 uselightcone        = True
 boundary_conditions = "normal" # Either normal or derivative
 
-GISW.setup(zmin, zmax, zedge_min, zedge_max, kmin=kmin, kmax=kmax,
+GISW.setup(zmin, zmax_SBT, zedge_min, zedge_max, kmin=kmin, kmax=kmax,
            lmax=lmax, nmax=nmax, uselightcone=uselightcone,
            boundary_conditions=boundary_conditions,
            temp_path=f"temp_zmax{zmax}_boxsize{BOXSIZE}_runindex{RUNINDEX}_{uuid.uuid4()}/")
@@ -91,7 +92,7 @@ for i in range(0, len(zedge_min)):
     # Compute alm from map_slice,
     # and store inside temp/ directory
     print(f"About to perform slice2alm in index i: {i}")
-    GISW.slice2alm(map_slice, i, use_pixel_weights=False)
+    GISW.slice2alm(map_slice, i)
 
 print("Done with for loop")
 
@@ -101,7 +102,7 @@ GISW.alm2sbt()
 # Compute ISW
 # Optionally, pass in a range of redshifts within which to
 # compute ISW
-alm_isw = GISW.sbt2isw_alm()
+alm_isw = GISW.sbt2isw_alm(zmin=0.0, zmax=zmax)
 
 # Save alm_isw to file,
 # to reduce computation time in the future

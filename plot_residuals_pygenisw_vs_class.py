@@ -27,8 +27,8 @@ COLORS = {
 }
 
 ZMAX = {
-    900: 0.32,
-    2250: 0.93,
+    900: 0.35,
+    2250: 1.38,
 }
 
 # Maximum L for which to compute C_L
@@ -140,10 +140,6 @@ for filename in filenames:
     boxsize = int(parts[2][len("boxsize"):])
     runindex = int(parts[3].split(".")[0][len("runindex"):])
 
-    # Only keep 900, zmax=0.32, and 2250, zmax=0.93
-    if zmax > 0.94:
-        continue
-
     # Determine type of run
     if "high" not in parts[0]:
         run_type = RUN_TYPES["FIDUCIAL"]
@@ -157,10 +153,8 @@ for filename in filenames:
         alm_isw = np.load(f)
 
     cl = hp.alm2cl(alm_isw)
-    cl *= (1e6)**2 # alm2cl returns Kelvin^2, but want to plot in microKelvin^2
+    cl *= class_unit_factor # pyGenISW returns unitless ALMs. So must multiply by (1e6*TCMB)**2
     ell = np.arange(len(cl))
-    print(ell)
-    print(cl)
 
     ell = ell[:MAXIMUM_L + 1]
     cl = cl[:MAXIMUM_L + 1]
