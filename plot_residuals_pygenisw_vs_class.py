@@ -80,52 +80,54 @@ for boxsize, zmax in ZMAX.items():
 print("Done with CLASS computation")
 
 
-### TheoryCL
 """
-print("Starting TheoryCL plot")
+############
+# TheoryCL #
+############
 
-SCL = TheoryCL.SourceCL(TheoryCL.CosmoLinearGrowth())
+for boxsize, zmax in ZMAX.items():
+    print("Starting TheoryCL plot")
 
-# Set cosmology
-SCL.cosmo(omega_m=CLASS_COMMON_SETTINGS["Omega_m"], omega_l=CLASS_COMMON_SETTINGS["Omega_m"], h0=h0, omega_b=Omega_b, ns=CLASS_COMMON_SETTINGS["n_s"], As=CLASS_COMMON_SETTINGS["A_s"], sigma8=sigma_8)
+    SCL = TheoryCL.SourceCL()
 
-# Creates a table of the following linear growth functions for later interpolation:
-# - r : comoving distance
-# - H : Hubble parameter
-# - D : linear growth rate
-# - f : dlnD/dlna via approximation.
-SCL.calc_table(zmin=0., zmax=10., zbin_num=10000, zbin_mode='log')
+    # Set cosmology
+    SCL.cosmo(omega_m=CLASS_COMMON_SETTINGS["Omega_m"], omega_l=CLASS_COMMON_SETTINGS["Omega_m"], h0=h0, omega_b=Omega_b, ns=CLASS_COMMON_SETTINGS["n_s"], As=CLASS_COMMON_SETTINGS["A_s"], sigma8=sigma_8)
 
-# Calculates the linear power spectra using CAMB and create callable interpolator.
-SCL.calc_pk()
+    # Creates a table of the following linear growth functions for later interpolation:
+    # - r : comoving distance
+    # - H : Hubble parameter
+    # - D : linear growth rate
+    # - f : dlnD/dlna via approximation.
+    SCL.calc_table(zmin=0., zmax=10., zbin_num=10000, zbin_mode='log')
 
-lmax              = 200           # maximum l mode to compute CLs.
-zmin              = 0.            # minimum redshift integrals along the line-of-sight are computed to.
-zmax              = 5.            # maximum redshift to which integrals along the line-of-sight are computed to.
-rbin_num          = 1000          # number of bins along radial coordinates for integration.
-rbin_mode         = 'linear'      # linear or log binning schemes.
-kmin              = None          # minimum k for integrals, if None defaults to minimum value pre-calculated by CAMB.
-kmax              = 1.            # maximum k for integrals
-kbin_num          = 1000          # number of bins in Fourier coordinates for integration.
-kbin_mode         = 'log'         # linear or log binning schemes.
-switch2limber     = 200           # beyond this l we only compute the CLs using the Limber/flat-sky approximation.
+    # Calculates the linear power spectra using CAMB and create callable interpolator.
+    SCL.calc_pk()
 
-SCL.setup(lmax, zmin=zmin, zmax=zmax, rbin_num=rbin_num, rbin_mode=rbin_mode,
-          kmin=kmin, kmax=kmax, kbin_num=kbin_num, kbin_mode=kbin_mode,
-          switch2limber=switch2limber)
+    lmax              = 200           # maximum l mode to compute CLs.
+    zmin              = 0.            # minimum redshift integrals along the line-of-sight are computed to.
+    zmax_los          = 5.            # maximum redshift to which integrals along the line-of-sight are computed to.
+    rbin_num          = 1000          # number of bins along radial coordinates for integration.
+    rbin_mode         = 'linear'      # linear or log binning schemes.
+    kmin              = 1e-4          # minimum k for integrals, if None defaults to minimum value pre-calculated by CAMB.
+    kmax              = 10            # maximum k for integrals
+    kbin_num          = 1000          # number of bins in Fourier coordinates for integration.
+    kbin_mode         = 'log'         # linear or log binning schemes.
+    switch2limber     = 2             # beyond this l we only compute the CLs using the Limber/flat-sky approximation.
 
-# Define sources, for example the ISW and matter distribution between redshift 0 and 1.4.
+    SCL.setup(lmax, zmin=zmin, zmax=zmax_los, rbin_num=rbin_num, rbin_mode=rbin_mode,
+              kmin=kmin, kmax=kmax, kbin_num=kbin_num, kbin_mode=kbin_mode,
+              switch2limber=switch2limber)
 
-zmin, zmax = 0.0, 0.93
-SCL.set_source_ISW(zmin, zmax)
-SCL.set_source_gal_tophat(zmin, zmax, 1.) # the 1. is the linear bias
+    # Define sources, for example the ISW and matter distribution between two redshifts
+    SCL.set_source_ISW(zmin, zmax)
 
-SCL.get_CL() # Units: Kelvin^2
+    SCL.get_CL() # Unitless
 
-ax.plot(SCL.L_full, (1e6)**2 * SCL.CLs_full[:, 0], color="black", linestyle="--", linewidth=2., label="TheoryCL")
-print("Done with TheoryCL")
+    ax.plot(SCL.L, ((1e6*TCMB)**2) * SCL.CLs[:, 0], color=COLORS[boxsize]["FIDUCIAL"], linestyle="--", linewidth=2., label=f"TheoryCL, zmax={zmax}")
+    del SCL
+    print("Done with TheoryCL")
+    ###
 """
-###
 
 ### pyGenISW
 
