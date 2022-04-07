@@ -44,8 +44,6 @@ zmax_SBT = zmax + 0.2
 print(f"zmax for boxsize {BOXSIZE} is {zmax}")
 
 # Filter data and info to contain only redshifts up to zmax
-info = [i for i in info if i.z_low < zmax]
-data = data[:len(info)]
 
 # Obtain redshift values for each slice
 zedge_min = np.array([row.z_low for row in info])
