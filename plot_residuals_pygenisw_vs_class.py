@@ -23,6 +23,8 @@ COLORS = {
     },
     2250: {
         "FIDUCIAL": "orange",
+        "HIGH PARTICLE COUNT": "purple",
+        "HIGH REDSHIFT RESOLUTION": "pink",
     },
 }
 
@@ -80,7 +82,6 @@ for boxsize, zmax in ZMAX.items():
 print("Done with CLASS computation")
 
 
-"""
 ############
 # TheoryCL #
 ############
@@ -91,7 +92,7 @@ for boxsize, zmax in ZMAX.items():
     SCL = TheoryCL.SourceCL()
 
     # Set cosmology
-    SCL.cosmo(omega_m=CLASS_COMMON_SETTINGS["Omega_m"], omega_l=CLASS_COMMON_SETTINGS["Omega_m"], h0=h0, omega_b=Omega_b, ns=CLASS_COMMON_SETTINGS["n_s"], As=CLASS_COMMON_SETTINGS["A_s"], sigma8=sigma_8)
+    SCL.cosmo(omega_m=CLASS_COMMON_SETTINGS["Omega_m"], omega_l=1-CLASS_COMMON_SETTINGS["Omega_m"], h0=h0, omega_b=Omega_b, ns=CLASS_COMMON_SETTINGS["n_s"], As=CLASS_COMMON_SETTINGS["A_s"], sigma8=sigma_8)
 
     # Creates a table of the following linear growth functions for later interpolation:
     # - r : comoving distance
@@ -127,7 +128,6 @@ for boxsize, zmax in ZMAX.items():
     del SCL
     print("Done with TheoryCL")
     ###
-"""
 
 ### pyGenISW
 
