@@ -1,9 +1,19 @@
 import argparse
+from classy import Class
 from collections import namedtuple
 import numpy as np
 import pyGenISW
 from class_common_settings import h0, sigma_8, Omega_b, CLASS_COMMON_SETTINGS
 import uuid
+
+# Create CLASS object to compute comoving distances
+M = Class()
+M.set(CLASS_COMMON_SETTINGS)
+M.compute()
+background = M.get_background()
+def get_r_from_z(z):
+    # Note comov. dist is in Mpc, so must multiply by h0 to make into Mpc/h
+    return float(h0 * np.interp(z, background["z"][::-1], background["comov. dist."][::-1]))
 
 # Collect data for boxsize, runindex, zmax
 parser = argparse.ArgumentParser()
@@ -39,7 +49,7 @@ GISW.cosmo(omega_m=CLASS_COMMON_SETTINGS["Omega_m"], omega_l=1 - CLASS_COMMON_SE
 GISW.calc_table(zmin=zmin_lookup, zmax=zmax_lookup, zbin_num=zbin_num, zbin_mode=zbin_mode)
 
 # Determine zmax as the redshift for which r(zmax) = BOXSIZE
-zmax = float(GISW.get_zr(BOXSIZE))
+zmax = float(GISW.get_zr(BOXSIZE)) # TODO use CLASS and interpolation instead of pyGenISW
 zmax_SBT = zmax + 0.2
 print(f"zmax for boxsize {BOXSIZE} is {zmax}")
 
@@ -77,12 +87,17 @@ for i in range(0, len(zedge_min)):
     # Compute mean from expected number of particles
     # based on average density in entire box
     AVERAGE_DENSITY = 0.92 ** 3 # particles / ((Mpc/h)^3)
-    MIN_R = float(GISW.get_rz(zedge_min[i]))
-    MAX_R = float(GISW.get_rz(zedge_max[i]))
+    MIN_R = get_r_from_z(zedge_min[i])
+    MAX_R = get_r_from_z(zedge_max[i])
     SLICE_VOLUME = (4*np.pi/3) * (MAX_R**3 - MIN_R**3)
     mean_count = AVERAGE_DENSITY * SLICE_VOLUME / len(counts)
     # Note that above, we divide mean_count by the number of pixels, i.e. the length of the map
     # Note: the length of the map should match hp.nside2npix(nside) with nside=2048
+
+    # Double check mean count
+    npmean = np.mean(counts)
+    relative_diff_mean_count = (npmean - mean_count) / npmean
+    print(f"{relative_diff_mean_count:.3f}")
 
     # Construct zero mean overdensity array
     map_slice = (counts - mean_count) / mean_count
