@@ -77,7 +77,7 @@ for boxsize, zmax in ZMAX.items():
     class_ell = cl_lisw['ell']
     class_cl = class_unit_factor * cl_lisw["tt"]
     class_cl_dict[boxsize] = class_cl
-    ax.plot(class_ell, class_cl, label=f"CLASS, zmax={zmax}", c=COLORS[boxsize][RUN_TYPES["FIDUCIAL"]], ls="-")
+    ax.plot(class_ell, class_cl, label=f"CLASS, zmax={zmax:.2f}", c=COLORS[boxsize][RUN_TYPES["FIDUCIAL"]], ls="-")
 
 print("Done with CLASS computation")
 
@@ -124,7 +124,7 @@ for boxsize, zmax in ZMAX.items():
 
     SCL.get_CL() # Unitless
 
-    ax.plot(SCL.L, ((1e6*TCMB)**2) * SCL.CLs[:, 0], color=COLORS[boxsize]["FIDUCIAL"], linestyle="--", linewidth=2., label=f"TheoryCL, zmax={zmax}")
+    ax.plot(SCL.L, ((1e6*TCMB)**2) * SCL.CLs[:, 0], color=COLORS[boxsize]["FIDUCIAL"], linestyle="--", linewidth=2., label=f"TheoryCL, zmax={zmax:.2f}")
     del SCL
     print("Done with TheoryCL")
     ###
