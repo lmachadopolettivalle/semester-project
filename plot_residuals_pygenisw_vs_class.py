@@ -198,8 +198,8 @@ ax2.set_ylabel("Fractional change\n(units of cosmic variance)")
 
 ax.set_xlim([0, 200])
 ax2.set_xlim([0, 200])
-ax.set_ylim([1e-6, 1e3])
-ax2.set_ylim([-10, 10])
+ax.set_ylim([1e-7, 1e3])
+ax2.set_ylim([-7.5, 7.5])
 
 ax.set_yscale("log")
 

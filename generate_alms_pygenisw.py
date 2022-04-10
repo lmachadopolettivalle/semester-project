@@ -68,7 +68,7 @@ Lbox                = BOXSIZE
 kmin                = 2.*np.pi/Lbox
 # kmax selected to limit analysis to linear perturbations.
 # Since non-linear perturbations happen for k > 0.1 h / Mpc
-kmax                = 0.1
+kmax                = 0.3
 lmax                = None
 nmax                = None
 uselightcone        = True
