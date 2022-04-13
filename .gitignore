@@ -1,9 +1,11 @@
-temp/
+temp*/
+alm_files/
 *npz
 *png
 *pdf
 *output
 *error
+__pycache__
 
 pyGenISW/
 TheoryCL/
