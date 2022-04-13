@@ -86,6 +86,9 @@ print("Done with CLASS computation")
 # TheoryCL #
 ############
 
+theorycl_ell_dict = {}
+theorycl_dict = {}
+
 for boxsize, zmax in ZMAX.items():
     print("Starting TheoryCL plot")
 
@@ -124,12 +127,17 @@ for boxsize, zmax in ZMAX.items():
 
     SCL.get_CL() # Unitless
 
-    ax.plot(SCL.L, ((1e6*TCMB)**2) * SCL.CLs[:, 0], color=COLORS[boxsize]["FIDUCIAL"], linestyle="--", linewidth=2., label=f"TheoryCL, zmax={zmax:.2f}")
+    theorycl_ell_dict[boxsize] = SCL.L
+    theorycl_dict[boxsize] = class_unit_factor * SCL.CLs[:, 0]
+
+    ax.plot(theorycl_ell_dict[boxsize], theorycl_dict[boxsize], color=COLORS[boxsize]["FIDUCIAL"], linestyle="--", linewidth=2., label=f"TheoryCL, zmax={zmax:.2f}")
     del SCL
     print("Done with TheoryCL")
     ###
 
-### pyGenISW
+############
+# pyGenISW #
+############
 
 # Loop through pyGenISW Alm files
 for filename in filenames:
@@ -164,29 +172,29 @@ for filename in filenames:
     ax.plot(
         ell,
         cl,
-        label=f"Boxsize={boxsize} Mpc/h, zmax={zmax:.2f}, {run_type.title()} {parts[0]}",
+        label=f"Boxsize={boxsize} Mpc/h, zmax={zmax:.2f}, run {runindex}, {run_type.title()} {parts[0]}",
         ls="--",
         c=COLORS[boxsize][run_type],
     )
 
     # Compute cosmic variance for residual plots
-    cosmic_variance = np.abs(class_cl_dict[boxsize]) * np.sqrt(2 / (2*class_ell + 1))
+    cosmic_variance = np.abs(theorycl_dict[boxsize]) * np.sqrt(2 / (2*theorycl_ell_dict[boxsize] + 1))
 
     # Compute fractional difference
     # Note that cl may have fewer than MAXIMUM_L elements, in which case we need to pad the difference array
-    fractional_diff = (cl - class_cl_dict[boxsize][:len(cl)])/ cosmic_variance[:len(cl)]
+    fractional_diff = (cl[:len(cosmic_variance)] - theorycl_dict[boxsize]) / cosmic_variance
 
     fractional_diff = np.pad(fractional_diff, (0, len(cosmic_variance) - len(fractional_diff)), "constant")
 
     ax2.plot(
-        class_ell,
+        theorycl_ell_dict[boxsize],
         fractional_diff,
         ls="--",
         c=COLORS[boxsize][run_type],
     )
 
 # Add cosmic variance to residual plot for reference
-ax2.fill_between(class_ell, [1]*len(class_ell), [-1]*len(class_ell), color="black", alpha=0.3)
+ax2.fill_between(theorycl_ell_dict[boxsize], [1]*len(theorycl_ell_dict[boxsize]), [-1]*len(theorycl_ell_dict[boxsize]), color="black", alpha=0.3)
 
 # Plot settings
 ax2.set_xlabel("$\ell$")
@@ -194,7 +202,7 @@ ax2.set_xlabel("$\ell$")
 ax2.axhline(0, color="black")
 
 ax.set_ylabel(r"$C_{\ell} (\mu K^2)$")
-ax2.set_ylabel("Fractional change\n(units of cosmic variance)")
+ax2.set_ylabel("Fractional change from TheoryCL\n(units of cosmic variance)")
 
 ax.set_xlim([0, 200])
 ax2.set_xlim([0, 200])
