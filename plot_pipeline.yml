@@ -1,0 +1,10 @@
+# Copyright (C) 2022 ETH Zurich, Institute for Particle Physics and Astrophysics
+
+# Created on May 16
+# Author: Luis Fernando
+
+- parameters:
+    - executable1: plot_spectra_comparison.py
+
+- name: plot_spectra_comparison
+  cmd: esub $[executable1]  --tasks='0' --additional_bsub_args='-n=4' --mode=jobarray --function=all 
