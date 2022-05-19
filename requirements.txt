@@ -2,7 +2,7 @@ astropy
 healpy
 matplotlib
 numpy
+pkgconfig
 scipy
 
--e pyGenISW/
 -e TheoryCL/

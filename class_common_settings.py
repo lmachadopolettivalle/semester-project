@@ -1,29 +1,38 @@
+from classy import Class
 import numpy as np
-import pyGenISW
+from pipeline import read_cosmology
 
-h0 = 0.6736
-sigma_8 = 0.84
+def get_CLASS_config(cosmology):
+    return {
+        "h": cosmology.get("H0", 70) / 100,
+        "N_ncdm": cosmology.get("N_ncdm", 1),
+        "Omega_m": cosmology.get("Omega_m", 0.26),
+        "m_ncdm": cosmology.get("m_ncdm", 0.06),
+        "N_ur": cosmology.get("N_ur", 2.0308),
+        "A_s": cosmology.get("A_s", 2.1304e-9),
+        "n_s": cosmology.get("n_s", 0.9649),
+        "T_cmb": cosmology.get("TCMB", 2.73),
+    }
 
-Omega_b = 0.0493
+def get_CLASS_instance(cosmology):
+    class_config = get_CLASS_config(cosmology)
+    M = Class()
+    M.set(class_config)
+    M.compute()
+    background = M.get_background()
 
-# CMB Temperature from pyGenISW
-GISW = pyGenISW.isw.SphericalBesselISW()
-TCMB = GISW.Tcmb
+    return background
 
-CLASS_COMMON_SETTINGS = {
-    'h':h0,
-    #'omega_b':0.0493*h0**2,
-    #'omega_cdm':0.209*h0**2,
-    'N_ncdm': 1,
-    'm_ncdm': 0.06,
-    'N_ur': 2.0308,
-    #'Omega_ncdm': 0.0014,
-    'Omega_m':0.26,
-    'A_s':np.exp(3.0589)*1e-10,
-    'n_s':0.9649,
-    'T_cmb': TCMB,
+COSMOLOGY = read_cosmology("cosmology.yml")
+
+CLASS_COMMON_SETTINGS = get_CLASS_config(COSMOLOGY)
+CLASS_COMMON_SETTINGS.update({
     'output':'tCl,pCl,lCl',
     'lensing':'yes',
     'temperature contributions': 'lisw',
-    #'early_late_isw_redshift': zedge_max[-1]
-}
+})
+
+h0 = COSMOLOGY.get("H0", 70) / 100
+sigma_8 = COSMOLOGY.get("sigma_8", 0.8)
+Omega_b = COSMOLOGY.get("Omega_baryon", 0.05)
+TCMB = COSMOLOGY.get("TCMB", 2.73)

@@ -1,11 +1,13 @@
+__pycache__
 temp*/
-alm_files/
 *npz
+*npy
 *png
 *pdf
 *output
 *error
-__pycache__
-
+esub_logs/
+images/
+isw_lightcone_env/
 pyGenISW/
 TheoryCL/

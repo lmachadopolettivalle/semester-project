@@ -1,0 +1,19 @@
+# Copyright (C) 2022 ETH Zurich, Institute for Particle Physics and Astrophysics
+
+# Created on April 29
+# Author: Alexander Reeves
+
+
+# In the parameters section one can define global variables. When submitting the jobs epipe will replace them in the commands (see below)
+- parameters:
+    - executable1: generate_alms.py
+    - executable2: plot_spectra_comparison.py
+
+# This is a job instance without dependencies (starts directly).
+- name: generate_alms
+  cmd: esub $[executable1] --tasks='0' --mode=jobarray --additional_bsub_args='-n=4' --boxsize=900 --runindex=0 --zmax=1.75
+
+# This job only starts after job1 has finished (if dependencies are not found they are just ignored).
+- name: plot_spectra_comparison
+  cmd: esub $[executable2]  --tasks='0' --additional_bsub_args='-n=4' --mode=jobarray --function=all 
+  dep: generate_alms
