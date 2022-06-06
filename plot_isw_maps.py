@@ -25,7 +25,7 @@ isw_map *= TCMB * 1e6 # Convert from relative units to microKelvin
 hp.mollview(
     isw_map,
     title=f"zmax = {ZMAX}, boxsize = {BOXSIZE} Mpc/h", unit=r"$\Delta T_{ISW}$ [$\mu$K]",
-    cmap=plt.get_cmap("RdBu").reversed(),
+    cmap=plt.get_cmap("RdBu_r"),
     min=-30,
     max=30,
 )

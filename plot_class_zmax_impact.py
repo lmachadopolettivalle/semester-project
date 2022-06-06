@@ -3,12 +3,16 @@ from matplotlib import pyplot as plt
 import numpy as np
 from class_common_settings import *
 
+N = 10
+
+plt.rcParams["axes.prop_cycle"] = plt.cycler("color", plt.cm.Blues_r(np.linspace(0.1, 0.8, N)))
+
 class_unit_factor = (TCMB * 1e6)**2
 
 M = Class()
 
 # Test different early/late cutoffs
-redshift_cutoffs = np.logspace(np.log10(1), np.log10(50), 10)
+redshift_cutoffs = np.logspace(np.log10(1), np.log10(50), N)
 
 fig, ax = plt.subplots(1, 1, figsize=(8.5, 5.4))
 

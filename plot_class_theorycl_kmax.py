@@ -10,6 +10,17 @@ M = Class()
 
 # Test different early/late cutoffs
 redshift_cutoffs = [0.32, 0.93]
+BLUE = "#004488"
+LIGHT_BLUE = "#003377"
+DARK_BLUE = "#115599"
+YELLOW = "#ddaa33"
+LIGHT_YELLOW = "#cc9922"
+DARK_YELLOW = "#eebb44"
+
+Z_COLORS = {
+    0.32: BLUE,
+    0.93: YELLOW,
+}
 
 fig, ax = plt.subplots(1, 1, figsize=(8.5, 5.4))
 
@@ -24,19 +35,33 @@ for cutoff in redshift_cutoffs:
     cl_lisw = M.raw_cl(200)
     M.empty()
 
-    ax.plot(cl_lisw['ell'], class_unit_factor * cl_lisw["tt"], label=f"CLASS, zmax: {cutoff:.2f}")
-
-
-
-
-
-
+    ax.plot(
+        cl_lisw['ell'],
+        class_unit_factor * cl_lisw["tt"],
+        label=f"CLASS, zmax: {cutoff:.2f}",
+        color=Z_COLORS[cutoff],
+    )
 
 
 ############
 # TheoryCL #
 ############
 kmax_values = [0.1, 0.5]
+K_COLORS = {
+    0.32: {
+        0.1: LIGHT_BLUE,
+        0.5: DARK_BLUE,
+    },
+    0.93: {
+        0.1: LIGHT_YELLOW,
+        0.5: DARK_YELLOW,
+    },
+}
+K_MARKERS = {
+    0.1: "o",
+    0.5: "x",
+}
+
 for zmax in redshift_cutoffs:
     for kmax in kmax_values:
         print("Starting TheoryCL plot")
@@ -77,7 +102,16 @@ for zmax in redshift_cutoffs:
 
         SCL.get_CL() # Unitless
 
-        ax.plot(SCL.L, class_unit_factor * SCL.CLs[:, 0], linestyle="--", linewidth=2., label=f"TheoryCL, zmax={zmax:.2f}, kmax={kmax:.1f}")
+        ax.plot(
+            SCL.L,
+            class_unit_factor * SCL.CLs[:, 0],
+            linestyle="--",
+            linewidth=2.,
+            label=f"TheoryCL, zmax={zmax:.2f}, kmax={kmax:.1f}",
+            color=K_COLORS[zmax][kmax],
+            marker=K_MARKERS[kmax],
+            markevery=15
+        )
         del SCL
         print("Done with TheoryCL")
 
