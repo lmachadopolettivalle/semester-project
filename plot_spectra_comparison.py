@@ -13,16 +13,26 @@ def main(indices, args):
 
     os.environ["OMP_NUM_THREADS"] = str(num_cores_of_job) #use ~4 cores  
 
-    REDSHIFTS = [0.32, 0.75, 0.93, 1.75, 3.5]
+
+    REDSHIFTS = [0.32, 0.93, 1.75]
     BOXSIZES = [900, 2250]
+
+    BLUE = "#004488"
+    YELLOW = "#ddaa33"
+    RED = "#bb5566"
 
     # List of colors
     COLORS = {
-        0.32: "blue",
+        0.32: BLUE,
         0.75: "red",
-        0.93: "orange",
-        1.75: "green",
+        0.93: YELLOW,
+        1.75: RED,
         3.5: "black",
+    }
+
+    MARKERS = {
+        900: "o",
+        2250: "x",
     }
 
     # Maximum L for which to compute C_L
@@ -45,35 +55,11 @@ def main(indices, args):
     # Setup for the SBT
     zmin = 0.0
 
-    #########
-    # CLASS #
-    #########
-    print("Starting CLASS computation")
-
-    class_cl_dict = {}
-
     # Units: CLASS outputs in strange units.
     # Need to multiply by (Tcmb*1e6)^2 to convert into microK^2
     # According to https://github.com/lesgourg/class_public/issues/304#issuecomment-671790592
     # and https://github.com/lesgourg/class_public/issues/322#issuecomment-613941965
     class_unit_factor = (TCMB * 1e6)**2
-
-    for zmax in REDSHIFTS:
-        M = Class()
-        CLASS_COMMON_SETTINGS["early_late_isw_redshift"] = zmax
-        M.set(CLASS_COMMON_SETTINGS)
-        M.compute()
-        cl_lisw = M.raw_cl(MAXIMUM_L)
-        M.empty()
-
-        class_ell = cl_lisw['ell']
-        class_cl = class_unit_factor * cl_lisw["tt"]
-        class_cl_dict[zmax] = class_cl
-        ax.plot(class_ell, class_cl, label=f"CLASS, zmax={zmax:.2f}", c=COLORS[zmax], ls="-")
-
-
-    print("Done with CLASS computation")
-
 
     ############
     # TheoryCL #
@@ -124,7 +110,7 @@ def main(indices, args):
         theorycl_ell_dict[zmax] = SCL.L
         theorycl_dict[zmax] = class_unit_factor * SCL.CLs[:, 0]
 
-        ax.plot(theorycl_ell_dict[zmax], theorycl_dict[zmax], color=COLORS[zmax], linestyle="--", linewidth=2., label=f"TheoryCL, zmax={zmax:.2f}")
+        ax.plot(theorycl_ell_dict[zmax], theorycl_dict[zmax], color=COLORS[zmax], linestyle="-", linewidth=2., label=f"TheoryCL, zmax={zmax:.2f}")
         del SCL
         print("Done with TheoryCL")
 
@@ -135,14 +121,17 @@ def main(indices, args):
     ############
 
     # Loop through pyGenISW Alm files
-    for filename in filenames:
+    for filename in sorted(filenames):
         # Parse boxsize, zmax
         # E.g. alm_zmax2.0_boxsize2250.npy
         if "alm" not in filename:
             continue
         parts = filename.split("_")
         zmax = float(parts[1][len("zmax"):])
-        boxsize = int(parts[2][len("boxsize"):])
+        boxsize = int(parts[2][len("boxsize"):-4])
+
+        if zmax not in REDSHIFTS:
+            continue
 
         # Read Alm values computed using pyGenISW
         with open(f"{ALM_FILES_DIRECTORY}/{filename}", "rb") as f:
@@ -159,7 +148,10 @@ def main(indices, args):
             ell,
             cl,
             label=f"Boxsize={boxsize} Mpc/h, zmax={zmax:.2f}",
+            c=COLORS[zmax],
             ls="--",
+            marker=MARKERS[boxsize],
+            markevery=10,
         )
 
         # Compute cosmic variance for residual plots
@@ -177,13 +169,16 @@ def main(indices, args):
         #fractional_diff = np.pad(fractional_diff, (0, len(cosmic_variance) - len(fractional_diff)), "constant")
 
         ax2.plot(
-                theorycl_ell_dict[zmax][:min_length],
-                fractional_diff[:min_length],
-            ls="--",
+            theorycl_ell_dict[zmax][:min_length],
+            fractional_diff[:min_length],
+            c=COLORS[zmax],
+            ls="-",
+            marker=MARKERS[boxsize],
+            markevery=10,
         )
 
     # Add cosmic variance to residual plot for reference
-    ax2.fill_between(theorycl_ell_dict[zmax], [1]*len(theorycl_ell_dict[zmax]), [-1]*len(theorycl_ell_dict[zmax]), color="black", alpha=0.3)
+    ax2.fill_between(theorycl_ell_dict[REDSHIFTS[0]], [1]*len(theorycl_ell_dict[REDSHIFTS[0]]), [-1]*len(theorycl_ell_dict[REDSHIFTS[0]]), color="black", alpha=0.3)
 
     # Plot settings
     ax2.set_xlabel("$\ell$", fontsize=12)
@@ -207,7 +202,7 @@ def main(indices, args):
 
     ax.set_title("Late ISW Spectrum Comparison", fontsize=12)
 
-    plt.savefig("images/HEHEHEpower_spectrum_sbt.pdf")
+    plt.savefig("images/power_spectrum_sbt.pdf")
 
     print("Done")
     #plt.show()
